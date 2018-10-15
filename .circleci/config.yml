@@ -8,4 +8,5 @@ jobs:
     - checkout
 
     # - run: go get -v -t -d ./... no dependencies, yet
+    - run: go get -u github.com/stretchr/testify
     - run: go test -v ill.fi/neobeam/tests
