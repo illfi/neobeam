@@ -1,19 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"neobeam/interp"
+	"ill.fi/neobeam/interp"
 	"testing"
 	"unicode"
 )
-
-func ShouldBe(name, src, check string) string {
-	return fmt.Sprintf("%s failed, is %q, should be %q", name, src, check)
-}
-
-func EShouldBe(t *testing.T, name, src, check string) {
-	t.Errorf(ShouldBe(name, src, check))
-}
 
 func TestCreateRope(t *testing.T) {
 	r := interp.NewRope("abc")

@@ -18,7 +18,7 @@ func main() {
 		os.Exit(1)
 	}
 	if _, e := os.Stat(*file); os.IsNotExist(e) {
-		fmt.Printf("file %s does not exist\n", file)
+		fmt.Printf("file %s does not exist\n", *file)
 		os.Exit(1)
 	}
 	Debug("Running file %s", file)

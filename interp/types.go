@@ -1,5 +1,9 @@
 package interp
 
+import (
+	"strings"
+)
+
 /////////////////
 // string shit //
 /////////////////
@@ -43,6 +47,15 @@ func (r *Rope) Reset(n []rune) {
 		r.Current = &r.Source[0]
 	}
 }
+
+type UnitState int
+
+const (
+	Benign UnitState = iota
+	Neutral
+	Activated
+	// TODO: think of more states
+)
 
 type UnitType int
 
@@ -88,9 +101,22 @@ type World struct {
 
 type Unit struct {
 	Type                  UnitType
-	Activated             bool
+	State                 UnitState
 	Left, Right, Up, Down *Unit
 	Row, Col              int
+}
+
+func charFromType(t UnitType) *rune {
+	for k, v := range TypeMap {
+		if v == t {
+			return &k
+		}
+	}
+	return nil
+}
+
+func (u Unit) Display() *rune {
+	return charFromType(u.Type)
 }
 
 func (w *World) Interweave() {
@@ -133,6 +159,76 @@ func (w *World) AtUnsafe(x, y int) *Unit {
 		}
 	}
 	return nil
+}
+
+func (w *World) FlatUnits() []Unit {
+	units := make([]Unit, 0)
+	for i := range w.Units {
+		for x := range w.Units[i] {
+			units = append(units, w.Units[i][x])
+		}
+	}
+	return units
+}
+
+func CreateWorld(s string) *World {
+	// split by newline, then split by character?
+	lines := strings.Split(s, "\n")
+	world := &World{}
+	world.Units = make([][]Unit, len(lines))
+	for i := range world.Units {
+		world.Units[i] = make([]Unit, len(strings.Split(lines[i], "")))
+	}
+	for li, l := range lines {
+		for ci, c := range strings.Split(l, "") {
+			t := ParseType(c)
+			world.Units[li][ci] = Unit{
+				Type:  t,
+				State: DefaultUnitState(t),
+				Row:   ci,
+				Col:   li,
+				Up:    nil, Down: nil, Left: nil, Right: nil,
+			}
+		}
+	}
+	world.Height = len(lines)
+	world.Width = len(strings.Split(lines[0], "")) // TODO: remove dodgy code (or comment)
+	return world
+}
+
+func (w *World) Display() string {
+	buf := ""
+	for ri := range w.Units {
+		for ci := range w.Units[ri] {
+			d := w.Units[ri][ci].Display()
+			if d == nil {
+				buf += "?"
+			} else {
+				buf += string(*d)
+			}
+			if ci != (len(w.Units[ri]) - 1) {
+				buf += " "
+			}
+		}
+		buf += "\n"
+	}
+	return buf
+}
+
+func DefaultUnitState(t UnitType) UnitState {
+	switch t {
+	case Unrecognized:
+	case Air:
+	case Wall:
+	case Reference:
+	default:
+		return Benign
+	case Router:
+	case Emitter:
+	case Caster:
+		return Neutral
+	}
+	return Benign
 }
 
 func ParseType(t string) UnitType {
